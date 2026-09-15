@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SceneHost_Layout">
+        <!-- Logical scene size in the 1920 x 1080 coordinate system. -->
+        <attr name="scene_width" format="float" />
+        <attr name="scene_height" format="float" />
+        <!-- Logical center of the child inside the scene. -->
+        <attr name="scene_center_x" format="float" />
+        <attr name="scene_center_y" format="float" />
+    </declare-styleable>
+</resources>
