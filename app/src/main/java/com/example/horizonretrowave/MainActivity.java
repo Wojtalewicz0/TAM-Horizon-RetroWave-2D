@@ -31,6 +31,46 @@ public class MainActivity extends AppCompatActivity {
 
         // Find the TextView declared in activity_main.xml.
         helloText = findViewById(R.id.hello_text);
+        Shared.element(helloText).PositionTo(480f, 540f, 0L);
+
+        /*
+         * Example of using and changing data from the global SharedSave object:
+         *
+         * if (Shared.sharedSave.points > 10) {
+         *     Shared.sharedSave.playerLevel = 2;
+         *
+         *     // Save the changed value permanently in HorizonSave.dat.
+         *     Shared.SaveSharedSave(this);
+         * }
+         */
+
+        /*
+         * Examples of using the global list of SharedCar objects:
+         *
+         * if (!Shared.sharedSave.sharedCars.isEmpty()) {
+         *     // Read values from the first car.
+         *     Shared.SharedCar firstCar = Shared.sharedSave.sharedCars.get(0);
+         *     String model = firstCar.model;
+         *     int carId = firstCar.id;
+         *
+         *     // Modify an existing car.
+         *     firstCar.model = "Nissan Silvia S15 Tuned";
+         *     firstCar.id = 10;
+         * }
+         *
+         * // Add a new car.
+         * Shared.sharedSave.sharedCars.add(
+         *         new Shared.SharedCar(3, "Mazda RX-7 FD")
+         * );
+         *
+         * // Remove the first car.
+         * if (!Shared.sharedSave.sharedCars.isEmpty()) {
+         *     Shared.sharedSave.sharedCars.remove(0);
+         * }
+         *
+         * // Persist all changes in HorizonSave.dat.
+         * Shared.SaveSharedSave(this);
+         */
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -62,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 .thenCompose(ignore -> runOnUi(() -> {
                     // GONE removes the view from layout and hit testing.
                     // Alpha makes the visual intention explicit as well.
-                    helloText.setAlpha(0.0f);
+                    Shared.OpacityTo(helloText, 1.0f, 0.0f, 0L);
                     helloText.setVisibility(View.GONE);
                 }));
     }

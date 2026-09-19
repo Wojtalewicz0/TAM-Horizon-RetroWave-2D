@@ -89,24 +89,57 @@ public class SceneHost extends ViewGroup {
 
             SceneLayoutParams params = (SceneLayoutParams) child.getLayoutParams();
 
-            float childLeft = sceneLeft
-                    + (params.centerX - params.sceneWidth / 2f) * sceneScale;
-            float childTop = sceneTop
-                    + (params.centerY - params.sceneHeight / 2f) * sceneScale;
+            int logicalWidth = Math.max(1, Math.round(params.sceneWidth));
+            int logicalHeight = Math.max(1, Math.round(params.sceneHeight));
 
-            // Layout in logical units, then scale from the top-left corner.
-            // This keeps center coordinates stable while the window changes.
+            // The unscaled layout rectangle is centered on the logical scene
+            // center. The visual scale is applied around that rectangle's
+            // center, so the element grows in every direction without moving.
+            float childLeft = sceneLeft
+                    + params.centerX * sceneScale
+                    - logicalWidth / 2f;
+            float childTop = sceneTop
+                    + params.centerY * sceneScale
+                    - logicalHeight / 2f;
+
             child.layout(
                     Math.round(childLeft),
                     Math.round(childTop),
-                    Math.round(childLeft + params.sceneWidth),
-                    Math.round(childTop + params.sceneHeight)
+                    Math.round(childLeft + logicalWidth),
+                    Math.round(childTop + logicalHeight)
             );
-            child.setPivotX(0f);
-            child.setPivotY(0f);
-            child.setScaleX(sceneScale);
-            child.setScaleY(sceneScale);
+            applyChildTransform(child, params);
         }
+    }
+
+    /**
+     * Sets the local scale of a direct child without changing its layout
+     * rectangle or moving any sibling views.
+     */
+    public void setElementScale(View child, float elementScale) {
+        if (child.getParent() != this || !(child.getLayoutParams() instanceof SceneLayoutParams)) {
+            throw new IllegalArgumentException(
+                    "The view must be a direct child of SceneHost."
+            );
+        }
+
+        SceneLayoutParams params = (SceneLayoutParams) child.getLayoutParams();
+        params.elementScale = Math.max(0f, elementScale);
+        applyChildTransform(child, params);
+    }
+
+    public float getElementScale(View child) {
+        if (child.getLayoutParams() instanceof SceneLayoutParams) {
+            return ((SceneLayoutParams) child.getLayoutParams()).elementScale;
+        }
+        return 1f;
+    }
+
+    private void applyChildTransform(View child, SceneLayoutParams params) {
+        child.setPivotX(child.getMeasuredWidth() / 2f);
+        child.setPivotY(child.getMeasuredHeight() / 2f);
+        child.setScaleX(sceneScale * params.elementScale);
+        child.setScaleY(sceneScale * params.elementScale);
     }
 
     private void updateSceneTransform(int width, int height) {
@@ -171,6 +204,7 @@ public class SceneHost extends ViewGroup {
         public float sceneHeight = 120f;
         public float centerX = SCENE_WIDTH / 2f;
         public float centerY = SCENE_HEIGHT / 2f;
+        public float elementScale = 1f;
 
         public SceneLayoutParams(float sceneWidth, float sceneHeight,
                                  float centerX, float centerY) {
@@ -215,6 +249,7 @@ public class SceneHost extends ViewGroup {
                 sceneHeight = sceneSource.sceneHeight;
                 centerX = sceneSource.centerX;
                 centerY = sceneSource.centerY;
+                elementScale = sceneSource.elementScale;
             }
         }
     }
