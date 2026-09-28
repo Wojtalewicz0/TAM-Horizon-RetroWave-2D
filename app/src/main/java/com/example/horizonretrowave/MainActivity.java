@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout gameResultsPanel;
     private TextView gameResultsText;
     private NeonGlowDrawable gameResultsOutline;
+    private ValueAnimator gameCarBounceAnimator;
     private Runnable gameTimerRunnable;
     private Runnable gameTimerBonusRestoreRunnable;
     private Runnable correctGuessHideRunnable;
@@ -481,6 +482,8 @@ public class MainActivity extends AppCompatActivity {
         if (gameTransitionStarted) {
             return;
         }
+        stopGameCarBounce();
+        gameCarDisplay.setTranslationY(0f);
         startText.setScaleX(1f);
         startText.setScaleY(1f);
         gameTransitionStarted = true;
@@ -555,7 +558,9 @@ public class MainActivity extends AppCompatActivity {
                     Shared.OpacityTo(gameRangeRow, 0f, 1f, 1000L);
                     gameCarDisplay.setVisibility(View.VISIBLE);
                     gameCarDisplay.setAlpha(0f);
+                    gameCarDisplay.setTranslationY(0f);
                     gameCarDisplay.bringToFront();
+                    startGameCarBounce();
                     Shared.OpacityTo(gameCarDisplay, 0f, 1f, 1000L);
                     gameNumpadPanel.setVisibility(View.VISIBLE);
                     gameNumpadPanel.setAlpha(0f);
@@ -634,6 +639,28 @@ public class MainActivity extends AppCompatActivity {
         boolean secondCar = Shared.sharedSave.carSelected == 2;
         gameCarImage.setImageResource(secondCar ? R.drawable.car2 : R.drawable.car1);
         gameCarPlate.setText(Shared.sharedSave.getPlayerTableCode());
+    }
+
+    private void startGameCarBounce() {
+        stopGameCarBounce();
+        // Small, sharp jolts rather than a smooth wave-like suspension bounce.
+        gameCarBounceAnimator = ValueAnimator.ofFloat(
+                0f, -8f, -8f, 3f, 3f, -6f, -6f, 8f, 8f, -2f, -2f, 0f, 0f
+        );
+        gameCarBounceAnimator.setDuration(700L);
+        gameCarBounceAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        gameCarBounceAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
+        gameCarBounceAnimator.addUpdateListener(animator -> {
+            gameCarDisplay.setTranslationY((Float) animator.getAnimatedValue());
+        });
+        gameCarBounceAnimator.start();
+    }
+
+    private void stopGameCarBounce() {
+        if (gameCarBounceAnimator != null) {
+            gameCarBounceAnimator.cancel();
+            gameCarBounceAnimator = null;
+        }
     }
     private void applyGameHudGlow(TextView textView, int color) {
         if (Shared.sharedSave.performanceModeEnabled) {
@@ -768,7 +795,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         long halfRange = Shared.sharedSave.highRange / 2L;
-        long earnedPoints = halfRange
+        long earnedPoints = (halfRange*2)
                 * (halfRange - Shared.sharedSave.attemptsCounter);
         Shared.sharedSave.inGamePointsEarned = (int) Math.max(
                 Integer.MIN_VALUE,
@@ -962,6 +989,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         gameFinishedShown = true;
+        stopGameCarBounce();
         clearCorrectGuessMessage();
         cancelGameTimerBonusHighlight();
         updateGameTimerDisplay();
@@ -1038,6 +1066,7 @@ public class MainActivity extends AppCompatActivity {
                     gameRangeRow.setVisibility(View.GONE);
                     gameEntryText.setText("");
                     gameCarDisplay.setVisibility(View.GONE);
+                    gameCarDisplay.setTranslationY(0f);
                     gameCarShadow.setVisibility(View.GONE);
                     gameCarShadow.setAlpha(0f);
                     gameNumpadPanel.setVisibility(View.GONE);
@@ -1694,6 +1723,7 @@ public class MainActivity extends AppCompatActivity {
             menuNeonAnimator = null;
         }
         stopGameNumpadNeonPulse();
+        stopGameCarBounce();
         mainHandler.removeCallbacksAndMessages(null);
         releaseBackgroundPlayer();
         if (videoSurface != null) {
