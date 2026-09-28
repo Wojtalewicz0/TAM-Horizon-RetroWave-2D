@@ -1,0 +1,65 @@
+[
+    {
+        "id": 1,
+        "name": "Nikolai Paszta",
+        "icon": "player1.png",
+        "table": "KRZYK",
+        "points": 11500
+    },
+    {
+        "id": 2,
+        "name": "Sobie Mistrz",
+        "icon": "player2.png",
+        "table": "SOBIE",
+        "points": 97200
+    },
+    {
+        "id": 3,
+        "name": "Danił Kviet",
+        "icon": "player3.png",
+        "table": "ULALA",
+        "points": 31000
+    },
+    {
+        "id": 4,
+        "name": "Pani Borysiak",
+        "icon": "player4.png",
+        "table": "ROBLX",
+        "points": 20
+    },
+    {
+        "id": 5,
+        "name": "Piotr Musiała",
+        "icon": "player5.png",
+        "table": "REACT",
+        "points": 4200
+    },
+    {
+        "id": 6,
+        "name": "Papcio Xavier",
+        "icon": "player6.png",
+        "table": "VALO",
+        "points": 2800
+    },
+    {
+        "id": 7,
+        "name": "Janikson",
+        "icon": "player7.png",
+        "table": "CFFL",
+        "points": 250
+    },
+    {
+        "id": 8,
+        "name": "Dżuma Mydło",
+        "icon": "player8.png",
+        "table": "GRUBY",
+        "points": 50
+    },
+    {
+        "id": 9,
+        "name": "Krucjata",
+        "icon": "player9.png",
+        "table": "NISKI",
+        "points": 800
+    }
+]

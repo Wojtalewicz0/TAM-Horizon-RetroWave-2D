@@ -8,17 +8,923 @@
     android:background="@android:color/black"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/hello_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/hello_world"
-        android:textColor="@android:color/white"
-        android:textSize="32sp"
-        app:scene_center_x="480"
+    <TextureView
+        android:id="@+id/video_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        android:contentDescription="@null"
+        app:scene_center_x="960"
         app:scene_center_y="540"
-        app:scene_height="120"
-        app:scene_width="480" />
+        app:scene_height="1080"
+        app:scene_width="1920" />
+
+    <ImageView
+        android:id="@+id/startup_polwoj_logo"
+        android:layout_width="760px"
+        android:layout_height="760px"
+        android:alpha="0"
+        android:visibility="gone"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        android:clickable="false"
+        android:focusable="false"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="760"
+        app:scene_width="760" />
+
+    <ImageView
+        android:id="@+id/startup_zse_logo"
+        android:layout_width="1400px"
+        android:layout_height="650px"
+        android:alpha="0"
+        android:visibility="gone"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        android:clickable="false"
+        android:focusable="false"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="650"
+        app:scene_width="1400" />
+
+    <FrameLayout
+        android:id="@+id/menu_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:visibility="gone"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="1080"
+        app:scene_width="1920">
+
+        <ImageView
+            android:id="@+id/menu_logo"
+            android:layout_width="1000px"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/menu_logo_description"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="200px"
+            android:layout_marginTop="-600px"
+            android:scaleType="fitCenter"
+            android:src="@drawable/logo1"
+            />
+
+        <LinearLayout
+            android:id="@+id/menu_actions"
+            android:layout_width="760px"
+            android:layout_height="850px"
+            android:gravity="center_vertical|end"
+            android:orientation="vertical"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="1120px"
+            android:layout_marginTop="115px">
+
+            <TextView
+                android:textSize="124px"
+                android:id="@+id/menu_play"
+                style="@style/MenuActionText"
+                android:text="@string/menu_play" />
+
+            <TextView
+                android:textSize="124px"
+                android:id="@+id/menu_garage"
+                style="@style/MenuActionText"
+                android:text="@string/menu_garage" />
+
+            <TextView
+                android:textSize="114px"
+                android:id="@+id/menu_rankings"
+                style="@style/MenuActionText"
+                android:text="@string/menu_rankings" />
+
+            <TextView
+                android:textSize="104px"
+                android:id="@+id/menu_settings"
+                style="@style/MenuActionText"
+                android:text="@string/menu_settings" />
+
+            <TextView
+                android:textSize="114px"
+                android:id="@+id/menu_exit"
+                style="@style/MenuActionText"
+                android:text="@string/menu_exit" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <View
+        android:id="@+id/black_fade_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:clickable="true"
+        android:contentDescription="@null"
+        android:elevation="1300dp"
+        android:focusable="true"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="1080"
+        app:scene_width="1920" />
+
+    <FrameLayout
+        android:id="@+id/exit_confirmation_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:clickable="true"
+        android:elevation="1100dp"
+        android:focusable="true"
+        android:visibility="gone"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="1080"
+        app:scene_width="1920">
+
+        <FrameLayout
+            android:id="@+id/exit_confirmation_dialog"
+            android:layout_width="1120px"
+            android:layout_height="560px"
+            android:layout_gravity="center"
+            android:background="@drawable/exit_dialog_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/exit_confirmation_text"
+                style="@style/ExitConfirmationText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|top"
+                android:layout_marginTop="105px"
+                android:text="@string/exit_confirmation" />
+
+            <LinearLayout
+                android:id="@+id/exit_confirmation_actions"
+                android:layout_width="720px"
+                android:layout_height="150px"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="82px"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/exit_confirmation_yes"
+                    style="@style/ExitConfirmationButton"
+                    android:layout_width="300px"
+                    android:layout_height="150px"
+                    android:text="@string/exit_yes" />
+
+                <TextView
+                    android:id="@+id/exit_confirmation_no"
+                    style="@style/ExitConfirmationButton"
+                    android:layout_width="300px"
+                    android:layout_height="150px"
+                    android:layout_marginStart="90px"
+                    android:text="@string/exit_no" />
+            </LinearLayout>
+        </FrameLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/settings_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:clickable="true"
+        android:elevation="1200dp"
+        android:focusable="true"
+        android:visibility="gone"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="1080"
+        app:scene_width="1920">
+
+        <FrameLayout
+            android:id="@+id/settings_panel"
+            android:layout_width="1450px"
+            android:layout_height="950px"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="290px"
+            android:layout_marginTop="65px"
+            android:background="@drawable/settings_panel_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/settings_title"
+                style="@style/SettingsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="150px"
+                android:layout_gravity="center_horizontal|top"
+                android:layout_marginTop="55px"
+                android:text="@string/settings_title" />
+
+            <LinearLayout
+                android:id="@+id/settings_actions"
+                android:layout_width="1250px"
+                android:layout_height="650px"
+                android:layout_gravity="center_horizontal|top"
+                android:layout_marginTop="220px"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/settings_sound"
+                    style="@style/SettingsActionButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="130px"
+                    android:layout_marginBottom="24px"
+                    android:text="@string/settings_sound_enabled"
+                    android:textSize="58px" />
+
+                <TextView
+                    android:id="@+id/settings_performance"
+                    style="@style/SettingsActionButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="130px"
+                    android:layout_marginBottom="24px"
+                    android:text="@string/settings_performance_disabled"
+                    android:textSize="60px" />
+
+                <TextView
+                    android:id="@+id/settings_reset"
+                    style="@style/SettingsActionButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="130px"
+                    android:layout_marginBottom="24px"
+                    android:text="@string/settings_reset"
+                    android:textSize="60px" />
+
+                <TextView
+                    android:id="@+id/settings_authors"
+                    style="@style/SettingsActionButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="130px"
+                    android:text="@string/settings_authors"
+                    android:textSize="60px" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <com.example.horizonretrowave.NeonBackButtonView
+            android:id="@+id/settings_back"
+            android:layout_width="220px"
+            android:layout_height="220px"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="45px"
+            android:layout_marginTop="45px"
+            android:clickable="true"
+            android:contentDescription="@string/settings_back_description"
+            android:focusable="true" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/garage_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:clickable="true"
+        android:elevation="1200dp"
+        android:focusable="true"
+        android:visibility="gone"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="1080"
+        app:scene_width="1920">
+
+        <FrameLayout
+            android:id="@+id/garage_panel"
+            android:layout_width="1450px"
+            android:layout_height="950px"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="290px"
+            android:layout_marginTop="65px"
+            android:background="@drawable/settings_panel_background"
+            android:clipToOutline="true"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/garage_background_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                android:src="@drawable/garage" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#42000000"
+                android:importantForAccessibility="no" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/garage_car_name"
+                    style="@style/GarageCarTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="90px"
+                    android:maxLines="1" />
+
+                <TextView
+                    android:id="@+id/garage_car_mode"
+                    style="@style/GarageCarMode"
+                    android:layout_width="match_parent"
+                    android:layout_height="65px"
+                    android:alpha="0.5"
+                    android:maxLines="1" />
+
+                <FrameLayout
+                    android:layout_width="720px"
+                    android:layout_height="720px">
+
+                    <ImageView
+                        android:id="@+id/garage_car_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/garage_car_image_description"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/car1" />
+
+                    <EditText
+                        android:id="@+id/garage_plate"
+                        android:layout_width="126px"
+                        android:layout_height="68px"
+                        android:layout_gravity="top|start"
+                        android:layout_marginStart="293px"
+                        android:layout_marginTop="359px"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="@string/garage_plate_description"
+                        android:fontFamily="@font/plate"
+                        android:gravity="center"
+                        android:imeOptions="actionDone"
+                        android:includeFontPadding="false"
+                        android:inputType="textCapCharacters|textNoSuggestions"
+                        android:maxLength="5"
+                        android:singleLine="true"
+                        android:textColor="#FF101010"
+                        android:textSize="53px"
+                        android:autoSizeTextType="uniform"
+                        android:autoSizeMinTextSize="38px"
+                        android:autoSizeMaxTextSize="53px"
+                        android:autoSizeStepGranularity="1px" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <com.example.horizonretrowave.NeonArrowButtonView
+                android:id="@+id/garage_previous_car"
+                android:layout_width="180px"
+                android:layout_height="220px"
+                android:layout_gravity="center_vertical|start"
+                android:layout_marginStart="34px"
+                android:clickable="true"
+                android:contentDescription="@string/garage_previous_car"
+                android:focusable="true" />
+
+            <com.example.horizonretrowave.NeonArrowButtonView
+                android:id="@+id/garage_next_car"
+                android:layout_width="180px"
+                android:layout_height="220px"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginEnd="34px"
+                android:clickable="true"
+                android:contentDescription="@string/garage_next_car"
+                android:focusable="true" />
+        </FrameLayout>
+
+        <com.example.horizonretrowave.NeonBackButtonView
+            android:id="@+id/garage_back"
+            android:layout_width="220px"
+            android:layout_height="220px"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="45px"
+            android:layout_marginTop="45px"
+            android:clickable="true"
+            android:contentDescription="@string/garage_back_description"
+            android:focusable="true" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/rankings_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:clickable="true"
+        android:elevation="1200dp"
+        android:focusable="true"
+        android:visibility="gone"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="1080"
+        app:scene_width="1920">
+
+        <FrameLayout
+            android:id="@+id/rankings_panel"
+            android:layout_width="1450px"
+            android:layout_height="950px"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="290px"
+            android:layout_marginTop="65px"
+            android:background="@drawable/settings_panel_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ScrollView
+                android:id="@+id/rankings_scroll"
+                android:layout_width="1320px"
+                android:layout_height="790px"
+                android:layout_gravity="top|start"
+                android:layout_marginStart="65px"
+                android:layout_marginTop="125px"
+                android:fillViewport="false"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/rankings_headers"
+                        android:layout_width="match_parent"
+                        android:layout_height="140px"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/rankings_header_number"
+                            style="@style/RankingHeader"
+                            android:layout_width="160px"
+                            android:layout_height="match_parent"
+                            android:text="@string/rankings_header_number" />
+
+                        <TextView
+                            android:id="@+id/rankings_header_name"
+                            style="@style/RankingHeader"
+                            android:layout_width="810px"
+                            android:layout_height="match_parent"
+                            android:text="@string/rankings_header_name" />
+
+                        <TextView
+                            android:id="@+id/rankings_header_points"
+                            style="@style/RankingHeader"
+                            android:layout_width="350px"
+                            android:layout_height="match_parent"
+                            android:maxLines="1"
+                            android:text="@string/rankings_header_points" />
+                    </LinearLayout>
+
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="25px" />
+
+                    <LinearLayout
+                        android:id="@+id/rankings_rows_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </ScrollView>
+        </FrameLayout>
+
+        <com.example.horizonretrowave.NeonBackButtonView
+            android:id="@+id/rankings_back"
+            android:layout_width="220px"
+            android:layout_height="220px"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="45px"
+            android:layout_marginTop="45px"
+            android:clickable="true"
+            android:contentDescription="@string/settings_back_description"
+            android:focusable="true" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/credits_touch_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:clickable="true"
+        android:elevation="1400dp"
+        android:focusable="true"
+        android:visibility="gone"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="1080"
+        app:scene_width="1920" />
+
+    <LinearLayout
+        android:id="@+id/credits_content"
+        android:layout_width="1500px"
+        android:layout_height="1140px"
+        android:alpha="0"
+        android:clickable="true"
+        android:elevation="1401dp"
+        android:gravity="center_horizontal|top"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:scene_center_x="960"
+        app:scene_center_y="1650"
+        app:scene_height="1140"
+        app:scene_width="1500">
+
+        <TextView
+            style="@style/CreditsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="130px"
+            android:text="@string/credits_authors_title" />
+
+        <TextView
+            style="@style/CreditsBody"
+            android:layout_width="match_parent"
+            android:layout_height="80px"
+            android:text="@string/credits_szymon" />
+
+        <TextView
+            style="@style/CreditsBody"
+            android:layout_width="match_parent"
+            android:layout_height="80px"
+            android:text="@string/credits_polwoj" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="170px" />
+
+        <TextView
+            style="@style/CreditsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="130px"
+            android:text="@string/credits_inspired_title" />
+
+        <TextView
+            style="@style/CreditsBody"
+            android:layout_width="match_parent"
+            android:layout_height="80px"
+            android:text="@string/credits_forza" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="170px" />
+
+        <TextView
+            style="@style/CreditsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="130px"
+            android:text="@string/credits_project_title" />
+
+        <TextView
+            style="@style/CreditsBody"
+            android:layout_width="match_parent"
+            android:layout_height="80px"
+            android:text="@string/credits_project_school" />
+
+        <TextView
+            style="@style/CreditsBody"
+            android:layout_width="match_parent"
+            android:layout_height="80px"
+            android:text="@string/credits_project_supervisor" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/game_timer_text"
+        style="@style/GameHudTimer"
+        android:layout_width="380px"
+        android:layout_height="110px"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        android:elevation="1500dp"
+        app:scene_center_x="230"
+        app:scene_center_y="105"
+        app:scene_height="110"
+        app:scene_width="380" />
+
+    <TextView
+        android:id="@+id/game_points_earned_text"
+        style="@style/GameHudTimer"
+        android:layout_width="520px"
+        android:layout_height="110px"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        android:elevation="1500dp"
+        app:scene_center_x="230"
+        app:scene_center_y="860"
+        app:scene_height="110"
+        app:scene_width="520" />
+
+    <TextView
+        android:id="@+id/game_points_text"
+        style="@style/GameHudTimer"
+        android:layout_width="520px"
+        android:layout_height="110px"
+        android:gravity="center"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        android:elevation="1500dp"
+        app:scene_center_x="230"
+        app:scene_center_y="980"
+        app:scene_height="110"
+        app:scene_width="520" />
+
+    <LinearLayout
+        android:id="@+id/game_range_row"
+        android:layout_width="match_parent"
+        android:layout_height="110px"
+        android:alpha="0"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        android:elevation="1500dp"
+        android:gravity="center_vertical|start"
+        android:orientation="horizontal"
+        android:paddingStart="28px"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="110"
+        app:scene_width="1920">
+
+        <TextView
+            android:id="@+id/game_range_low_text"
+            style="@style/GameHudTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textSize="82px"
+            android:textColor="#FFFFDD4A" />
+
+        <TextView
+            android:id="@+id/game_entry_text"
+            style="@style/GameHudTimer"
+            android:layout_width="220px"
+            android:layout_height="match_parent"
+            android:textSize="82px"
+            android:textColor="#FFFFDD4A" />
+
+        <TextView
+            android:id="@+id/game_range_high_text"
+            style="@style/GameHudTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textSize="82px"
+            android:textColor="#FFFFDD4A" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/game_car_display"
+        android:layout_width="1212px"
+        android:layout_height="792px"
+        android:alpha="0"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        android:elevation="1500dp"
+        app:scene_center_x="960"
+        app:scene_center_y="757"
+        app:scene_height="792"
+        app:scene_width="1212">
+
+        <ImageView
+            android:id="@+id/game_car_image"
+            android:layout_width="792px"
+            android:layout_height="792px"
+            android:layout_gravity="center"
+            android:alpha="0.8"
+            android:contentDescription="@string/garage_car_image_description"
+            android:scaleType="fitCenter"
+            android:src="@drawable/car1" />
+
+        <ImageView
+            android:id="@+id/game_car_shadow"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/shadow"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/game_car_plate"
+            android:layout_width="139px"
+            android:layout_height="75px"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="532px"
+            android:layout_marginTop="395px"
+            android:fontFamily="@font/plate"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:singleLine="true"
+            android:textColor="#FF101010"
+            android:textSize="37px"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="27px"
+            android:autoSizeMaxTextSize="37px"
+            android:autoSizeStepGranularity="1px" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/game_numpad_panel"
+        android:layout_width="557px"
+        android:layout_height="918px"
+        android:alpha="0"
+        android:visibility="gone"
+        android:elevation="1500dp"
+        app:scene_center_x="1619"
+        app:scene_center_y="540"
+        app:scene_height="918"
+        app:scene_width="557">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="6px">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0px"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/game_numpad_7"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="7" />
+
+                <TextView
+                    android:id="@+id/game_numpad_8"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="8" />
+
+                <TextView
+                    android:id="@+id/game_numpad_9"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="9" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0px"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/game_numpad_4"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="4" />
+
+                <TextView
+                    android:id="@+id/game_numpad_5"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="5" />
+
+                <TextView
+                    android:id="@+id/game_numpad_6"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="6" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0px"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/game_numpad_1"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="1" />
+
+                <TextView
+                    android:id="@+id/game_numpad_2"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="2" />
+
+                <TextView
+                    android:id="@+id/game_numpad_3"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="3" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0px"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/game_numpad_enter"
+                    android:background="@drawable/game_numpad_button_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
+                    android:layout_margin="4px">
+
+                    <TextView
+                        android:id="@+id/game_numpad_enter_arrow"
+                        style="@style/GameNumpadArrowText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:translationY="-48px"
+                        android:text="&#8594;" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/game_numpad_0"
+                    style="@style/GameNumpadButton"
+                    android:layout_width="0px"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="4px"
+                    android:text="0" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/start_text"
+        style="@style/GameHudCountdown"
+        android:layout_width="1920px"
+        android:layout_height="300px"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        android:elevation="1501dp"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="300"
+        app:scene_width="1920" />
+
+    <FrameLayout
+        android:id="@+id/game_results_panel"
+        android:layout_width="1920px"
+        android:layout_height="356px"
+        android:background="@drawable/game_results_panel_background"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        android:elevation="1502dp"
+        app:scene_center_x="960"
+        app:scene_center_y="540"
+        app:scene_height="356"
+        app:scene_width="1920">
+
+        <TextView
+            android:id="@+id/game_results_text"
+            style="@style/GameHudResultText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="" />
+    </FrameLayout>
 
 </com.example.horizonretrowave.SceneHost>

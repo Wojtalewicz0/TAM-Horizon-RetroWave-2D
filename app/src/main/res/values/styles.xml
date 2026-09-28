@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MenuActionText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">150px</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center_vertical|end</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:paddingEnd">24px</item>
+        <item name="android:textAlignment">viewEnd</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">84px</item>
+    </style>
+    <style name="ExitConfirmationText">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">74px</item>
+    </style>
+
+    <style name="ExitConfirmationButton">
+        <item name="android:background">@drawable/exit_dialog_button_background</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">52px</item>
+    </style>
+
+    <style name="SettingsTitle">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">96px</item>
+    </style>
+
+    <style name="SettingsActionButton">
+        <item name="android:background">@drawable/settings_button_background</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="CreditsTitle">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">84px</item>
+    </style>
+
+    <style name="CreditsBody">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">52px</item>
+    </style>
+
+    <style name="RankingHeader">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">70px</item>
+    </style>
+
+    <style name="RankingRowText">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">70px</item>
+    </style>
+
+    <style name="GarageCarTitle">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">72px</item>
+    </style>
+
+    <style name="GarageCarMode">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">50px</item>
+    </style>
+
+    <style name="GameHudTimer">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">82px</item>
+    </style>
+
+    <style name="GameHudCountdown">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">190px</item>
+    </style>
+
+    <style name="GameHudResultText">
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">#FFFFDD4A</item>
+        <item name="android:textSize">104px</item>
+    </style>
+
+    <style name="GameNumpadButton">
+        <item name="android:background">@drawable/game_numpad_button_background</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">@font/main</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">84px</item>
+    </style>
+
+    <style name="GameNumpadArrowText">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">190px</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>

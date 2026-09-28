@@ -4,6 +4,9 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.animation.LinearInterpolator;
 import android.view.View;
@@ -20,6 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -41,10 +46,16 @@ public final class Shared {
 
     private static final String TAG = "Shared";
     private static final String SAVE_FILE_NAME = "HorizonSave.dat";
+    private static final String DEFAULT_PROFILE_PHOTO = "main_profile";
+    private static final String PROFILE_PHOTO_FILE_NAME = "profile_photo.jpg";
 
     private static final Map<View, ValueAnimator> SCALE_ANIMATORS = new WeakHashMap<>();
     private static final Map<View, ValueAnimator> OPACITY_ANIMATORS = new WeakHashMap<>();
+    private static final Map<View, ValueAnimator> BLACK_FADE_ANIMATORS = new WeakHashMap<>();
     private static final Map<View, ValueAnimator> POSITION_ANIMATORS = new WeakHashMap<>();
+    private static final Map<String, SoundInstance> SOUND_INSTANCES = new HashMap<>();
+
+    private static Context applicationContext;
 
     /**
      * Global save/state object shared by Shared.java, StartActivity.java and
@@ -73,6 +84,339 @@ public final class Shared {
             throw new IllegalArgumentException("The UI element cannot be null.");
         }
         return new Element(view);
+    }
+
+    /**
+     * Stores the application context used by the global sound functions.
+     * Activities should call this once during onCreate().
+     */
+    public static synchronized void Initialize(Context context) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context cannot be null.");
+        }
+        applicationContext = context.getApplicationContext();
+    }
+
+    /**
+     * Saves the current profile photo in the application's private storage.
+     * SharedSave.playerPhoto is changed only after the image was written
+     * successfully; SaveSharedSave() should be called afterwards to persist
+     * that identifier in HorizonSave.dat.
+     */
+    public static synchronized boolean SaveProfilePhoto(
+            Context context,
+            Bitmap profilePhoto
+    ) {
+        if (context == null || profilePhoto == null) {
+            return false;
+        }
+
+        Context appContext = context.getApplicationContext();
+        try (FileOutputStream output = appContext.openFileOutput(
+                PROFILE_PHOTO_FILE_NAME,
+                Context.MODE_PRIVATE
+        )) {
+            boolean compressed = profilePhoto.compress(
+                    Bitmap.CompressFormat.JPEG,
+                    92,
+                    output
+            );
+            if (compressed) {
+                sharedSave.playerPhoto = PROFILE_PHOTO_FILE_NAME;
+            }
+            return compressed;
+        } catch (IOException | RuntimeException exception) {
+            Log.e(TAG, "Could not save profile photo.", exception);
+            return false;
+        }
+    }
+
+    /**
+     * Loads the saved custom profile photo. A null result means that the
+     * default drawable should be used instead.
+     */
+    public static synchronized Bitmap LoadProfilePhoto(Context context) {
+        if (context == null
+                || !PROFILE_PHOTO_FILE_NAME.equals(sharedSave.playerPhoto)) {
+            return null;
+        }
+
+        File photoFile = new File(
+                context.getApplicationContext().getFilesDir(),
+                PROFILE_PHOTO_FILE_NAME
+        );
+        if (!photoFile.isFile()) {
+            sharedSave.playerPhoto = DEFAULT_PROFILE_PHOTO;
+            return null;
+        }
+
+        return BitmapFactory.decodeFile(photoFile.getAbsolutePath());
+    }
+
+    /**
+     * Starts an audio resource from app/src/main/res/raw/.
+     *
+     * Examples:
+     * Shared.SoundPlay("intro", 1.0f);
+     * Shared.SoundPlay("intro.mp3", 0.5f);
+     * Shared.SoundPlay("menu.mp3", 0.7f, true);
+     *
+     * The extension is optional. Volume is in the range 0..1. The two-
+     * argument overload plays once; the three-argument overload can loop
+     * until SoundStop("menu.mp3") is called. The four-argument overload
+     * can run a callback after one-shot playback ends.
+     */
+    public static void SoundPlay(
+            String fileName,
+            float volume
+    ) {
+        SoundPlay(fileName, volume, false);
+    }
+
+    /**
+     * Starts an audio resource, optionally looping it indefinitely.
+     *
+     * A looping sound stays registered in Shared.SOUND_INSTANCES until
+     * SoundStop(fileName) or SoundStopAll() is called.
+     */
+    public static synchronized void SoundPlay(
+            String fileName,
+            float volume,
+            boolean isLooping
+    ) {
+        SoundPlay(fileName, volume, isLooping, null);
+    }
+
+    /** Starts a sound and optionally runs an action after one-shot playback ends. */
+    public static synchronized void SoundPlay(
+            String fileName,
+            float volume,
+            boolean isLooping,
+            Runnable onCompletion
+    ) {
+        Context context = requireApplicationContext();
+        String resourceName = normalizeRawResourceName(fileName);
+        int resourceId = context.getResources().getIdentifier(
+                resourceName,
+                "raw",
+                context.getPackageName()
+        );
+
+        if (resourceId == 0) {
+            Log.e(TAG, "Audio resource not found in res/raw: " + fileName);
+            return;
+        }
+
+        SoundStop(resourceName);
+
+        try {
+            MediaPlayer player = MediaPlayer.create(context, resourceId);
+            if (player == null) {
+                Log.e(TAG, "MediaPlayer could not create: " + fileName);
+                return;
+            }
+
+            SoundInstance instance = new SoundInstance(
+                    resourceName,
+                    player,
+                    sharedSave.soundEffectsEnabled ? clamp01(volume) : 0.0f,
+                    isLooping
+            );
+
+            player.setVolume(instance.currentVolume, instance.currentVolume);
+            player.setLooping(isLooping);
+            player.setOnCompletionListener(completedPlayer -> {
+                boolean wasCurrentInstance = false;
+                synchronized (Shared.class) {
+                    if (instance.isLooping) {
+                        // MediaPlayer normally does not dispatch completion
+                        // while looping, but keep the contract safe if a
+                        // device implementation does dispatch it.
+                        if (!instance.released && !completedPlayer.isPlaying()) {
+                            completedPlayer.start();
+                        }
+                        return;
+                    }
+
+                    if (SOUND_INSTANCES.get(instance.resourceName) == instance) {
+                        SOUND_INSTANCES.remove(instance.resourceName);
+                        wasCurrentInstance = true;
+                    }
+                    releaseSoundInstance(instance);
+                }
+
+                if (wasCurrentInstance && onCompletion != null) {
+                    onCompletion.run();
+                }
+            });
+
+            SOUND_INSTANCES.put(resourceName, instance);
+            player.start();
+        } catch (RuntimeException exception) {
+            Log.e(TAG, "Could not play audio resource: " + fileName, exception);
+        }
+    }
+
+    /**
+     * Fades an already playing sound to targetVolume over durationSeconds.
+     * Duration is expressed in seconds to match the original WPF helper.
+     * A duration of zero changes the volume immediately.
+     */
+    public static synchronized void SoundFade(
+            String fileName,
+            float targetVolume,
+            double durationSeconds
+    ) {
+        String resourceName = normalizeRawResourceName(fileName);
+        SoundInstance instance = SOUND_INSTANCES.get(resourceName);
+
+        if (instance == null || instance.released) {
+            Log.w(TAG, "SoundFade ignored; sound is not playing: " + fileName);
+            return;
+        }
+
+        if (instance.fadeAnimator != null) {
+            instance.fadeAnimator.cancel();
+            instance.fadeAnimator = null;
+        }
+
+        float safeTargetVolume = sharedSave.soundEffectsEnabled
+                ? clamp01(targetVolume)
+                : 0.0f;
+        if (!sharedSave.soundEffectsEnabled || durationSeconds <= 0.0) {
+            setSoundVolume(instance, safeTargetVolume);
+            return;
+        }
+
+        ValueAnimator animator = ValueAnimator.ofFloat(
+                instance.currentVolume,
+                safeTargetVolume
+        );
+        animator.setDuration(Math.max(1L, Math.round(durationSeconds * 1000.0)));
+        animator.setInterpolator(new LinearInterpolator());
+        animator.addUpdateListener(animation -> {
+            synchronized (Shared.class) {
+                if (!instance.released) {
+                    setSoundVolume(instance, (float) animation.getAnimatedValue());
+                }
+            }
+        });
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                synchronized (Shared.class) {
+                    if (instance.fadeAnimator == animator) {
+                        instance.fadeAnimator = null;
+                    }
+                }
+            }
+        });
+
+        instance.fadeAnimator = animator;
+        animator.start();
+    }
+
+    /**
+     * Enables or disables every active sound immediately. Re-enabling uses
+     * volume 1.0 for each active MediaPlayer, matching the settings toggle.
+     */
+    public static synchronized void SetSoundEffectsEnabled(boolean enabled) {
+        sharedSave.soundEffectsEnabled = enabled;
+
+        // Work from a snapshot so future changes to SOUND_INSTANCES cannot
+        // affect this pass while each sound is updated through SoundFade().
+        ArrayList<String> activeSounds = new ArrayList<>(SOUND_INSTANCES.keySet());
+        float targetVolume = enabled ? 1.0f : 0.0f;
+        for (String resourceName : activeSounds) {
+            SoundFade(resourceName, targetVolume, 0.0);
+        }
+    }
+
+    /**
+     * Stops a sound and releases its native MediaPlayer resources.
+     */
+    public static synchronized void SoundStop(String fileName) {
+        String resourceName = normalizeRawResourceName(fileName);
+        SoundInstance instance = SOUND_INSTANCES.remove(resourceName);
+
+        if (instance != null) {
+            releaseSoundInstance(instance);
+        }
+    }
+
+    /** Stops and releases every sound currently managed by Shared. */
+    public static synchronized void SoundStopAll() {
+        for (SoundInstance instance : SOUND_INSTANCES.values()) {
+            releaseSoundInstance(instance);
+        }
+        SOUND_INSTANCES.clear();
+    }
+
+    private static void setSoundVolume(SoundInstance instance, float volume) {
+        instance.currentVolume = clamp01(volume);
+        if (!instance.released) {
+            instance.player.setVolume(
+                    instance.currentVolume,
+                    instance.currentVolume
+            );
+        }
+    }
+
+    private static void releaseSoundInstance(SoundInstance instance) {
+        if (instance.fadeAnimator != null) {
+            instance.fadeAnimator.cancel();
+            instance.fadeAnimator = null;
+        }
+
+        if (!instance.released) {
+            instance.released = true;
+            instance.player.stop();
+            instance.player.release();
+        }
+    }
+
+    private static Context requireApplicationContext() {
+        if (applicationContext == null) {
+            throw new IllegalStateException(
+                    "Call Shared.Initialize(context) before using sound functions."
+            );
+        }
+        return applicationContext;
+    }
+
+    private static String normalizeRawResourceName(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Sound file name cannot be empty.");
+        }
+
+        String resourceName = fileName.trim();
+        int extensionStart = resourceName.lastIndexOf('.');
+        if (extensionStart > 0) {
+            resourceName = resourceName.substring(0, extensionStart);
+        }
+
+        return resourceName.toLowerCase(Locale.US);
+    }
+
+    private static final class SoundInstance {
+        private final String resourceName;
+        private final MediaPlayer player;
+        private final boolean isLooping;
+        private float currentVolume;
+        private ValueAnimator fadeAnimator;
+        private boolean released;
+
+        private SoundInstance(
+                String resourceName,
+                MediaPlayer player,
+                float currentVolume,
+                boolean isLooping
+        ) {
+            this.resourceName = resourceName;
+            this.player = player;
+            this.isLooping = isLooping;
+            this.currentVolume = currentVolume;
+        }
     }
 
     /**
@@ -154,58 +498,76 @@ public final class Shared {
         }
     }
 
-    /**
-     * Example shared save data. Add future global values here, then add their
-     * JSON read/write code in toJson() and fromJson().
-     */
-    public static final class SharedCar {
-        public int id;
-        public String model;
-
-        public SharedCar(int id, String model) {
-            this.id = id;
-            this.model = model;
-        }
-    }
-
     public static final class SharedSave {
+        /** Hard-coded developer switch; intentionally excluded from save JSON. */
+        public boolean devMode;
         public int saveVersion;
         public int points;
         public int gameFinishedOnce;
         public int playerLevel;
         public float masterVolume;
+        public int startGameSeconds;
+        public int inGameSeconds;
+        /** Points earned in the current run; this is intentionally transient. */
+        public int inGamePoints;
+        public int inGamePointsEarned;
+        public int lowRange;
+        public int inGameLowRange;
+        public int highRange;
+        public int inGameHighRange;
+        public int numberToGuess;
+        public int attemptsCounter;
         public boolean musicEnabled;
         public boolean soundEffectsEnabled;
+        public boolean performanceModeEnabled;
         public String playerName;
+        public String playerTable;
+        /** "main_profile" or PROFILE_PHOTO_FILE_NAME in internal storage. */
+        public String playerPhoto;
         public String selectedLanguage;
+        public int carSelected;
+        public String car1Name;
+        public String car2Name;
         public final ArrayList<String> unlockedItems = new ArrayList<>();
         public final ArrayList<Integer> highScores = new ArrayList<>();
-        public final ArrayList<SharedCar> sharedCars = new ArrayList<>();
 
         public SharedSave() {
             resetToDefaults();
         }
 
         public void resetToDefaults() {
+            devMode = false;
             saveVersion = 1;
             points = 0;
             gameFinishedOnce = 0;
             playerLevel = 1;
             masterVolume = 1.0f;
             musicEnabled = true;
+            startGameSeconds = 60;
+            inGameSeconds = 0;
+            inGamePoints = 0;
+            inGamePointsEarned = 0;
+            lowRange = 0;
+            inGameLowRange = 0;
+            highRange = 10;
+            inGameHighRange = 10;
+            attemptsCounter = 0;
             soundEffectsEnabled = true;
-            playerName = "Player";
+            performanceModeEnabled = false;
+            playerName = "null";
+            playerTable = "FORZA";
+            playerPhoto = DEFAULT_PROFILE_PHOTO;
             selectedLanguage = "pl";
+            carSelected = 1;
+            car1Name = "Nissan 350Z";
+            numberToGuess = 0;
+            car2Name = "Abflug S900 Wangan";
 
             unlockedItems.clear();
             unlockedItems.add("default");
 
             highScores.clear();
             highScores.add(0);
-
-            sharedCars.clear();
-            sharedCars.add(new SharedCar(1, "Nissan Silvia S15"));
-            sharedCars.add(new SharedCar(2, "Toyota Supra A80"));
         }
 
         private JSONObject toJson() throws JSONException {
@@ -217,8 +579,12 @@ public final class Shared {
             json.put("masterVolume", masterVolume);
             json.put("musicEnabled", musicEnabled);
             json.put("soundEffectsEnabled", soundEffectsEnabled);
+            json.put("performanceModeEnabled", performanceModeEnabled);
             json.put("playerName", playerName);
+            json.put("playerTable", getPlayerTableCode());
+            json.put("playerPhoto", playerPhoto);
             json.put("selectedLanguage", selectedLanguage);
+            json.put("carSelected", carSelected);
 
             JSONArray items = new JSONArray();
             for (String item : unlockedItems) {
@@ -231,15 +597,6 @@ public final class Shared {
                 scores.put(score);
             }
             json.put("highScores", scores);
-
-            JSONArray cars = new JSONArray();
-            for (SharedCar car : sharedCars) {
-                JSONObject carJson = new JSONObject();
-                carJson.put("id", car.id);
-                carJson.put("model", car.model);
-                cars.put(carJson);
-            }
-            json.put("sharedCars", cars);
 
             return json;
         }
@@ -258,11 +615,20 @@ public final class Shared {
                     "soundEffectsEnabled",
                     soundEffectsEnabled
             );
+            performanceModeEnabled = json.optBoolean(
+                    "performanceModeEnabled",
+                    performanceModeEnabled
+            );
             playerName = json.optString("playerName", playerName);
+            playerTable = normalizePlayerTable(
+                    json.optString("playerTable", playerTable)
+            );
+            playerPhoto = json.optString("playerPhoto", playerPhoto);
             selectedLanguage = json.optString(
                     "selectedLanguage",
                     selectedLanguage
             );
+            carSelected = json.optInt("carSelected", carSelected);
 
             JSONArray items = json.optJSONArray("unlockedItems");
             if (items != null) {
@@ -279,20 +645,16 @@ public final class Shared {
                     highScores.add(scores.optInt(i));
                 }
             }
+        }
 
-            JSONArray cars = json.optJSONArray("sharedCars");
-            if (cars != null) {
-                sharedCars.clear();
-                for (int i = 0; i < cars.length(); i++) {
-                    JSONObject carJson = cars.optJSONObject(i);
-                    if (carJson != null) {
-                        sharedCars.add(new SharedCar(
-                                carJson.optInt("id", 0),
-                                carJson.optString("model", "")
-                        ));
-                    }
-                }
-            }
+        /** Returns the player tag as uppercase text limited to five characters. */
+        public String getPlayerTableCode() {
+            return normalizePlayerTable(playerTable);
+        }
+
+        private static String normalizePlayerTable(String value) {
+            String normalized = value == null ? "" : value.trim().toUpperCase(Locale.US);
+            return normalized.length() > 5 ? normalized.substring(0, 5) : normalized;
         }
     }
 
@@ -413,6 +775,83 @@ public final class Shared {
         animator.start();
     }
 
+    /**
+     * Fades a full-screen black overlay and manages its touch blocking.
+     *
+     * While the overlay is visible, including during the animation, it is
+     * clickable and blocks all interaction with views below it. When the
+     * final opacity is zero, the overlay becomes GONE and no longer has a
+     * hitbox. Opacity values are in the range 0..1.
+     */
+    public static void BlackFade(
+            View overlay,
+            float fromOpacity,
+            float toOpacity,
+            long durationMilliseconds
+    ) {
+        if (overlay == null) {
+            throw new IllegalArgumentException("Black fade overlay cannot be null.");
+        }
+
+        cancelAnimator(BLACK_FADE_ANIMATORS, overlay);
+        cancelAnimator(OPACITY_ANIMATORS, overlay);
+
+        float safeFromOpacity = clamp01(fromOpacity);
+        float safeToOpacity = clamp01(toOpacity);
+
+        // A fully transparent overlay must stay absent from hit testing.
+        if (safeFromOpacity <= 0f && safeToOpacity <= 0f) {
+            finishBlackFade(overlay, 0f);
+            return;
+        }
+
+        overlay.setVisibility(View.VISIBLE);
+        overlay.setClickable(true);
+        overlay.setFocusable(true);
+        overlay.setAlpha(safeFromOpacity);
+
+        if (durationMilliseconds <= 0) {
+            finishBlackFade(overlay, safeToOpacity);
+            return;
+        }
+
+        ValueAnimator animator = ValueAnimator.ofFloat(
+                safeFromOpacity,
+                safeToOpacity
+        );
+        animator.setDuration(durationMilliseconds);
+        animator.setInterpolator(new LinearInterpolator());
+        animator.addUpdateListener(animation ->
+                overlay.setAlpha((float) animation.getAnimatedValue())
+        );
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (BLACK_FADE_ANIMATORS.get(overlay) == animator) {
+                    BLACK_FADE_ANIMATORS.remove(overlay);
+                    finishBlackFade(overlay, safeToOpacity);
+                }
+            }
+        });
+
+        BLACK_FADE_ANIMATORS.put(overlay, animator);
+        animator.start();
+    }
+
+    private static void finishBlackFade(View overlay, float finalOpacity) {
+        overlay.setAlpha(finalOpacity);
+
+        if (finalOpacity <= 0f) {
+            overlay.setClickable(false);
+            overlay.setFocusable(false);
+            overlay.setVisibility(View.GONE);
+        } else {
+            overlay.setVisibility(View.VISIBLE);
+            overlay.setClickable(true);
+            overlay.setFocusable(true);
+        }
+    }
+
     private static void setElementScale(View element, float scale) {
         SceneHost host = directSceneHostOf(element);
         if (host != null) {
@@ -495,6 +934,15 @@ public final class Shared {
                 long durationMilliseconds
         ) {
             Shared.OpacityTo(view, fromOpacity, toOpacity, durationMilliseconds);
+            return this;
+        }
+
+        public Element BlackFade(
+                float fromOpacity,
+                float toOpacity,
+                long durationMilliseconds
+        ) {
+            Shared.BlackFade(view, fromOpacity, toOpacity, durationMilliseconds);
             return this;
         }
     }

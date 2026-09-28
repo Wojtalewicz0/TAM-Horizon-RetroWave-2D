@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Strong pink neon band surrounding the button. -->
+    <item
+        android:left="-8px"
+        android:top="-8px"
+        android:right="-8px"
+        android:bottom="-8px">
+        <shape android:shape="rectangle">
+            <corners android:radius="12px" />
+            <solid android:color="@color/profile_neon_pink_glow" />
+        </shape>
+    </item>
+
+    <item
+        android:left="8px"
+        android:top="8px"
+        android:right="8px"
+        android:bottom="8px">
+        <shape android:shape="rectangle">
+            <corners android:radius="4px" />
+            <solid android:color="@color/profile_button_magenta" />
+            <stroke
+                android:width="3px"
+                android:color="@android:color/white" />
+        </shape>
+    </item>
+</layer-list>
