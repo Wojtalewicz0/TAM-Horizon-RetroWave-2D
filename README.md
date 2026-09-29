@@ -6,20 +6,20 @@ nie posiada kilku dużych plików uniemożliwiając biuld projektu.
 <br>
 ## Fraszka dla pana
 <b><i>
-Panie Radosławie,
-Proszę serdecznie o szósteczkę.
-Panie Radosławie,
-Inaczej musi pan znaleźć wymóweczkę!
+Panie Radosławie,<br>
+Proszę serdecznie o szósteczkę.<br>
+Panie Radosławie,<br>
+Inaczej musi pan znaleźć wymóweczkę!<br>
 
-Panie Sobieraju,
-Pracowałem każdego dnia oraz nocy,
-Panie Sobieraju,
-Przez ten projekt opadłem z wszelkiej mocy!
+Panie Sobieraju,<br>
+Pracowałem każdego dnia oraz nocy,<br>
+Panie Sobieraju,<br>
+Przez ten projekt opadłem z wszelkiej mocy!<br>
 
-Panie Radku,
-Taki świetny projekt, zlituj się pan!
-Panie Radku,
-A w WPF piękne projekty panu dam!
+Panie Radku,<br>
+Taki świetny projekt, zlituj się pan!<br>
+Panie Radku,<br>
+A w WPF piękne projekty panu dam!<br>
 </b></i>
 <br>
 ## Screeny:
