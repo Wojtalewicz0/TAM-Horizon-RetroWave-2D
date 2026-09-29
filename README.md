@@ -25,6 +25,6 @@ A w WPF piękne projekty panu dam!<br>
 ## Screeny:
 
 <img src="screen1.png" alt="Zdjęcie 1" width="100%" />
-<img src="screen2.png" alt="Zdjęcie 2" width="100%" />
+<img src="screen4.png" alt="Zdjęcie 2" width="100%" />
 <img src="screen3.png" alt="Zdjęcie 3" width="100%" />
 
