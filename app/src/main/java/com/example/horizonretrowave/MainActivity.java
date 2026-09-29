@@ -47,6 +47,19 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERFORMANCE_NEON_COLOR = 0xFFFF2DBB;
     private static final int GAME_ENTRY_GLOW_COLOR = 0xFFFFDD4A;
     private static final int GAME_TIMER_BONUS_COLOR = 0xFF54FF78;
+    private static final double STARTUP_INTRO_TO_FIRST_LOGO_DELAY_SECONDS = 1.0;
+    private static final double STARTUP_GAP_BETWEEN_LOGOS_SECONDS = 3.0;
+    private static final double STARTUP_LAST_LOGO_TO_MENU_DELAY_SECONDS = 4.0;
+    private static final double STARTUP_LOGO_HOLD_SECONDS = 2.6;
+    private static final long STARTUP_LOGO_FADE_DURATION_MS = 900L;
+    private static final long STARTUP_CAR_ONE_DURATION_MS = 1700L;
+    private static final long STARTUP_CAR_TWO_DURATION_MS = 1900L;
+    private static final long STARTUP_CAR_THREE_DURATION_MS = 1800L;
+    private static final float STARTUP_CAR_ONE_SCALE = 1.0f;
+    private static final float STARTUP_CAR_TWO_SCALE = 0.9f;
+    private static final float STARTUP_CAR_THREE_SCALE = 1.0f;
+    private static final float STARTUP_CAR_SCENE_WIDTH = 1200f;
+    private static final float STARTUP_CAR_SCENE_HEIGHT = 600f;
     private static ArrayList<RankingEntry> cachedRankingJsonEntries;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Executor uiExecutor = command -> mainHandler.post(command);
@@ -62,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView gamePointsText;
     private TextView gamePointsEarnedText;
     private LinearLayout gameRangeRow;
+    private LinearLayout gameRangePanel;
     private TextView gameEntryText;
     private TextView gameRangeLowText;
     private TextView gameRangeHighText;
@@ -75,7 +89,9 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout gameResultsPanel;
     private TextView gameResultsText;
     private NeonGlowDrawable gameResultsOutline;
+    private NeonGlowDrawable gameRangeOutline;
     private ValueAnimator gameCarBounceAnimator;
+    private ValueAnimator gameRangePulseAnimator;
     private Runnable gameTimerRunnable;
     private Runnable gameTimerBonusRestoreRunnable;
     private Runnable correctGuessHideRunnable;
@@ -87,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean gameTimerBonusHighlightActive;
     private View creditsTouchOverlay;
     private View creditsContent;
+    private SceneHost sceneHost;
     private View menuContainer;
     private ImageView startupPolwojLogo;
     private ImageView startupZseLogo;
@@ -104,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout settingsPanel;
     private TextView settingsTitle;
     private NeonBackButtonView settingsBack;
+    private ImageView settingsWebsite;
     private TextView settingsSound;
     private TextView settingsPerformance;
     private TextView settingsReset;
@@ -135,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<TextView> garageNeonTextViews = new ArrayList<>();
     private final ArrayList<NeonGlowDrawable> garageNeonDrawables = new ArrayList<>();
     private final ArrayList<NeonGlowDrawable> gameNumpadNeonDrawables = new ArrayList<>();
+    private final ArrayList<ImageView> activeStartupCarViews = new ArrayList<>();
     private int activeNeonColor = PERFORMANCE_NEON_COLOR;
     private float activeNeonGlowRadius = 36f;
     private boolean activeNeonShadowEnabled = true;
@@ -154,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         enableImmersiveLandscapeWindow();
         setContentView(R.layout.activity_main);
+        sceneHost = findViewById(R.id.main);
         videoBackground = findViewById(R.id.video_background);
         videoBackground.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
@@ -202,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
         settingsPanel = findViewById(R.id.settings_panel);
         settingsTitle = findViewById(R.id.settings_title);
         settingsBack = findViewById(R.id.settings_back);
+        settingsWebsite = findViewById(R.id.settings_website);
         settingsSound = findViewById(R.id.settings_sound);
         settingsPerformance = findViewById(R.id.settings_performance);
         settingsReset = findViewById(R.id.settings_reset);
@@ -226,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
         gamePointsText = findViewById(R.id.game_points_text);
         gamePointsEarnedText = findViewById(R.id.game_points_earned_text);
         gameRangeRow = findViewById(R.id.game_range_row);
+        gameRangePanel = findViewById(R.id.game_range_panel);
         gameEntryText = findViewById(R.id.game_entry_text);
         gameRangeLowText = findViewById(R.id.game_range_low_text);
         gameRangeHighText = findViewById(R.id.game_range_high_text);
@@ -258,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
         gameEntryText.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         gameEntryText.setTextColor(GAME_ENTRY_GLOW_COLOR);
         applyGameHudGlow(gameEntryText, GAME_ENTRY_GLOW_COLOR);
+        prepareGameRangeHighlight();
         startText.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         gameResultsText.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         gameResultsOutline = new NeonGlowDrawable();
@@ -280,12 +303,13 @@ public class MainActivity extends AppCompatActivity {
         exitConfirmationYes.setOnClickListener(view -> confirmExit());
         exitConfirmationNo.setOnClickListener(view -> hideExitConfirmation());
         settingsBack.setOnClickListener(view -> hideSettings());
+        settingsWebsite.setOnClickListener(view -> openSettingsWebsite());
         rankingsBack.setOnClickListener(view -> hideRankings());
         garageBack.setOnClickListener(view -> ClickedGarageBack());
         garagePreviousCar.setPointsRight(false);
         garageNextCar.setPointsRight(true);
-        garagePreviousCar.setOnClickListener(view -> selectOtherGarageCar());
-        garageNextCar.setOnClickListener(view -> selectOtherGarageCar());
+        garagePreviousCar.setOnClickListener(view -> selectOtherGarageCar(-1));
+        garageNextCar.setOnClickListener(view -> selectOtherGarageCar(1));
         configureGaragePlateInput();
         settingsSound.setOnClickListener(view -> toggleSoundSetting());
         settingsPerformance.setOnClickListener(view -> togglePerformanceSetting());
@@ -427,12 +451,37 @@ public class MainActivity extends AppCompatActivity {
     }
     private void startAppSequence() {
         Shared.OpacityTo(videoBackground, 1.0f, 0.0f, 0L);
-        introSequence = runOnUi(() -> Shared.SoundPlay("intro_prev.mp3", 1.0f))
-                .thenCompose(ignore -> delaySecondsUnconditionally(1.0))
+            introSequence = runOnUi(() -> {
+                    Shared.SoundPlay("intro_prev.mp3", 1.0f);
+                })
+                .thenCompose(ignore -> delaySecondsUnconditionally(2.1))
+                .thenCompose(ignore -> runOnUi(() -> {
+                    PlayCars(
+                            CarDirection.LEFT_TO_RIGHT,
+                            STARTUP_CAR_ONE_DURATION_MS/2,
+                            STARTUP_CAR_ONE_SCALE*4,
+                            R.drawable.cars3
+                    );
+                }))
+                .thenCompose(ignore -> delaySecondsUnconditionally(0.5))
                 .thenCompose(ignore -> playStartupLogo(startupPolwojLogo, R.drawable.polwoj_white))
-                .thenCompose(ignore -> delaySecondsUnconditionally(3.0))
+                .thenCompose(ignore -> delaySecondsUnconditionally(6.0))
+                .thenCompose(ignore -> runOnUi(() -> PlayCars(
+                        CarDirection.RIGHT_TO_LEFT,
+                        STARTUP_CAR_ONE_DURATION_MS/2,
+                        STARTUP_CAR_ONE_SCALE*2,
+                        R.drawable.cars2
+                )))
+                .thenCompose(ignore -> delaySecondsUnconditionally(0.4))
                 .thenCompose(ignore -> playStartupLogo(startupZseLogo, R.drawable.zse))
-                .thenCompose(ignore -> delaySecondsUnconditionally(4.0))
+                .thenCompose(ignore -> delaySecondsUnconditionally(3.3))
+                .thenCompose(ignore -> runOnUi(() -> PlayCars(
+                        CarDirection.LEFT_TO_RIGHT,
+                        STARTUP_CAR_THREE_DURATION_MS/2,
+                        STARTUP_CAR_THREE_SCALE*2,
+                        R.drawable.cars
+                )))
+                .thenCompose(ignore -> delaySecondsUnconditionally(3.0))
                 .thenCompose(ignore -> runOnUi(() -> {
                     ChangeVideo("intro.mp4");
                     Shared.SoundPlay(
@@ -462,21 +511,125 @@ public class MainActivity extends AppCompatActivity {
                     Shared.sharedSave.devMode = false;
                 }));
     }
+    private enum CarDirection {
+        LEFT_TO_RIGHT,
+        RIGHT_TO_LEFT
+    }
+    private void PlayCars(
+            CarDirection direction,
+            long durationMillis,
+            float scale,
+            int imageResource
+    ) {
+        if (direction == null || durationMillis <= 0L || scale <= 0f) {
+            return;
+        }
+
+        ImageView carImage = new ImageView(this);
+        carImage.setImageResource(imageResource);
+        carImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        carImage.setContentDescription(null);
+        carImage.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        carImage.setClickable(false);
+        carImage.setFocusable(false);
+        // Do not draw at the scene center while waiting for the first layout pass.
+        carImage.setVisibility(View.INVISIBLE);
+
+        SceneHost.SceneLayoutParams layoutParams = new SceneHost.SceneLayoutParams(
+                STARTUP_CAR_SCENE_WIDTH,
+                STARTUP_CAR_SCENE_HEIGHT,
+                SceneHost.SCENE_WIDTH / 2f,
+                SceneHost.SCENE_HEIGHT / 2f
+        );
+        int startupLogoIndex = Math.max(
+                sceneHost.indexOfChild(startupPolwojLogo),
+                sceneHost.indexOfChild(startupZseLogo)
+        );
+        int insertIndex = startupLogoIndex >= 0
+                ? startupLogoIndex + 1
+                : sceneHost.getChildCount();
+        sceneHost.addView(carImage, insertIndex, layoutParams);
+        sceneHost.setElementScale(carImage, scale);
+        activeStartupCarViews.add(carImage);
+
+        carImage.post(() -> startCarPassWhenSceneIsReady(
+                carImage,
+                direction,
+                durationMillis,
+                scale
+        ));
+    }
+    private void startCarPassWhenSceneIsReady(
+            ImageView carImage,
+            CarDirection direction,
+            long durationMillis,
+            float scale
+    ) {
+        if (carImage.getParent() != sceneHost || isDestroyed()) {
+            return;
+        }
+        if (sceneHost.getWidth() <= 0 || sceneHost.getHeight() <= 0) {
+            carImage.postDelayed(() -> startCarPassWhenSceneIsReady(
+                    carImage,
+                    direction,
+                    durationMillis,
+                    scale
+            ), 16L);
+            return;
+        }
+
+        float sceneScale = Math.min(
+                sceneHost.getWidth() / SceneHost.SCENE_WIDTH,
+                sceneHost.getHeight() / SceneHost.SCENE_HEIGHT
+        );
+        float scaledImageWidth = STARTUP_CAR_SCENE_WIDTH * sceneScale * scale;
+        float travelDistance = sceneHost.getWidth() / 2f + scaledImageWidth / 2f;
+        float startTranslation = direction == CarDirection.LEFT_TO_RIGHT
+                ? -travelDistance
+                : travelDistance;
+        float endTranslation = -startTranslation;
+
+        carImage.setTranslationX(startTranslation);
+        carImage.setVisibility(View.VISIBLE);
+        carImage.animate()
+                .translationX(endTranslation)
+                .setDuration(durationMillis)
+                .setInterpolator(new android.view.animation.LinearInterpolator())
+                .withEndAction(() -> {
+                    activeStartupCarViews.remove(carImage);
+                    if (carImage.getParent() == sceneHost) {
+                        sceneHost.removeView(carImage);
+                    }
+                })
+                .start();
+    }
     private CompletableFuture<Void> playStartupLogo(ImageView logo, int drawableResource) {
         return runOnUi(() -> {
                     logo.setImageResource(drawableResource);
                     logo.setVisibility(View.VISIBLE);
                     logo.setAlpha(0f);
-                    Shared.OpacityTo(logo, 0f, 1f, 1000L);
-                })
-                .thenCompose(ignore -> delaySecondsUnconditionally(1.0))
-                .thenCompose(ignore -> delaySecondsUnconditionally(1.0))
-                .thenCompose(ignore -> runOnUi(() -> Shared.OpacityTo(logo, 1f, 0f, 1000L)))
-                .thenCompose(ignore -> delaySecondsUnconditionally(1.0))
-                .thenCompose(ignore -> runOnUi(() -> {
-                    logo.setVisibility(View.GONE);
-                    logo.setAlpha(0f);
-                }));
+                    Shared.OpacityTo(logo, 0f, 1f, STARTUP_LOGO_FADE_DURATION_MS);
+                    long fadeOutDelayMillis = STARTUP_LOGO_FADE_DURATION_MS
+                            + Math.round(STARTUP_LOGO_HOLD_SECONDS * 1000.0);
+                    mainHandler.postDelayed(() -> {
+                        if (isDestroyed() || logo.getParent() == null) {
+                            return;
+                        }
+                        Shared.OpacityTo(
+                                logo,
+                                1f,
+                                0f,
+                                STARTUP_LOGO_FADE_DURATION_MS
+                        );
+                        mainHandler.postDelayed(() -> {
+                            if (isDestroyed() || logo.getParent() == null) {
+                                return;
+                            }
+                            logo.setVisibility(View.GONE);
+                            logo.setAlpha(0f);
+                        }, STARTUP_LOGO_FADE_DURATION_MS);
+                    }, fadeOutDelayMillis);
+                });
     }
     private void ClickedGame() {
         if (gameTransitionStarted) {
@@ -484,8 +637,7 @@ public class MainActivity extends AppCompatActivity {
         }
         stopGameCarBounce();
         gameCarDisplay.setTranslationY(0f);
-        startText.setScaleX(1f);
-        startText.setScaleY(1f);
+        sceneHost.setElementScale(startText, 1f);
         gameTransitionStarted = true;
         menuReadyFlag = false;
         if (menuNeonAnimator != null) {
@@ -493,14 +645,20 @@ public class MainActivity extends AppCompatActivity {
             menuNeonAnimator = null;
         }
         Shared.sharedSave.lowRange = 0;
-        Shared.sharedSave.highRange = 10;
+        if (Shared.sharedSave.carSelected == 2) {
+            Shared.sharedSave.highRange = 10;
+        } else if (Shared.sharedSave.carSelected == 3) {
+            Shared.sharedSave.highRange = 5;
+        } else {
+            Shared.sharedSave.highRange = 5;
+        }
         Shared.sharedSave.attemptsCounter = 0;
         Shared.sharedSave.inGameLowRange = Shared.sharedSave.lowRange;
         Shared.sharedSave.inGameHighRange = Shared.sharedSave.highRange;
         generateNumberToGuess();
         Shared.sharedSave.startGameSeconds = 60;
-        if (Shared.sharedSave.carSelected == 2) {
-            Shared.sharedSave.startGameSeconds = 45;
+        if (Shared.sharedSave.carSelected == 3) {
+            Shared.sharedSave.startGameSeconds = 30;
         }
         blackFadeOverlay.bringToFront();
         Shared.BlackFade(blackFadeOverlay, 0f, 1f, 1000L);
@@ -555,6 +713,7 @@ public class MainActivity extends AppCompatActivity {
                     gameRangeRow.setVisibility(View.VISIBLE);
                     gameRangeRow.setAlpha(0f);
                     gameRangeRow.bringToFront();
+                    startGameRangePulse();
                     Shared.OpacityTo(gameRangeRow, 0f, 1f, 1000L);
                     gameCarDisplay.setVisibility(View.VISIBLE);
                     gameCarDisplay.setAlpha(0f);
@@ -591,14 +750,14 @@ public class MainActivity extends AppCompatActivity {
                 .thenCompose(ignore -> runOnUi(() -> {
                     startText.setVisibility(View.GONE);
                     startText.setAlpha(0f);
-                    startText.setScaleX(0.6f);
-                    startText.setScaleY(0.6f);
+                    sceneHost.setElementScale(startText, 0.7f);
                     startGameTimer();
                 }));
     }
     private CompletableFuture<Void> showStartCountdownValue(String value) {
         return runOnUi(() -> {
             startText.setText(value);
+            sceneHost.setElementScale(startText, 1f);
             startText.setTextColor(Color.WHITE);
             applyGameHudGlow(startText, Color.WHITE);
             startText.setVisibility(View.VISIBLE);
@@ -636,22 +795,50 @@ public class MainActivity extends AppCompatActivity {
         applyGameHudGlow(gameEntryText, GAME_ENTRY_GLOW_COLOR);
     }
     private void updateGameCarDisplay() {
-        boolean secondCar = Shared.sharedSave.carSelected == 2;
-        gameCarImage.setImageResource(secondCar ? R.drawable.car2 : R.drawable.car1);
+        int selectedCar = normalizeSelectedCar();
+        gameCarImage.setImageResource(getCarDrawableResource(selectedCar));
+        FrameLayout.LayoutParams plateLayout =
+                (FrameLayout.LayoutParams) gameCarPlate.getLayoutParams();
+        plateLayout.leftMargin = 532;
+        plateLayout.setMarginStart(532);
+        plateLayout.topMargin = 395;
+        gameCarPlate.setLayoutParams(plateLayout);
         gameCarPlate.setText(Shared.sharedSave.getPlayerTableCode());
+    }
+
+    private int normalizeSelectedCar() {
+        int selectedCar = Shared.sharedSave.carSelected;
+        if (selectedCar < 1 || selectedCar > 3) {
+            selectedCar = 1;
+            Shared.sharedSave.carSelected = selectedCar;
+        }
+        return selectedCar;
+    }
+
+    private int getCarDrawableResource(int selectedCar) {
+        if (selectedCar == 3) {
+            return R.drawable.car3;
+        }
+        return selectedCar == 2 ? R.drawable.car2 : R.drawable.car1;
     }
 
     private void startGameCarBounce() {
         stopGameCarBounce();
-        // Small, sharp jolts rather than a smooth wave-like suspension bounce.
-        gameCarBounceAnimator = ValueAnimator.ofFloat(
-                0f, -8f, -8f, 3f, 3f, -6f, -6f, 8f, 8f, -2f, -2f, 0f, 0f
+        // Discrete pixel-like jolts; do not interpolate between the road bumps.
+        gameCarBounceAnimator = ValueAnimator.ofInt(
+                0, -2, -2, 1, 1, -1, -1, 2, 2, -1, -1, 0, 0
         );
-        gameCarBounceAnimator.setDuration(700L);
+        gameCarBounceAnimator.setDuration(480L);
         gameCarBounceAnimator.setRepeatCount(ValueAnimator.INFINITE);
         gameCarBounceAnimator.setInterpolator(new android.view.animation.LinearInterpolator());
+        gameCarBounceAnimator.setEvaluator(new android.animation.TypeEvaluator<Integer>() {
+            @Override
+            public Integer evaluate(float fraction, Integer startValue, Integer endValue) {
+                return fraction < 0.5f ? startValue : endValue;
+            }
+        });
         gameCarBounceAnimator.addUpdateListener(animator -> {
-            gameCarDisplay.setTranslationY((Float) animator.getAnimatedValue());
+            gameCarDisplay.setTranslationY((Integer) animator.getAnimatedValue());
         });
         gameCarBounceAnimator.start();
     }
@@ -692,6 +879,54 @@ public class MainActivity extends AppCompatActivity {
         gameNumpadButtons[8].setOnClickListener(view -> clicked3());
         gameNumpadButtons[9].setOnClickListener(view -> clickedenter());
         gameNumpadButtons[10].setOnClickListener(view -> clicked0());
+    }
+    private void prepareGameRangeHighlight() {
+        gameRangeRow.setClipChildren(false);
+        gameRangeRow.setClipToPadding(false);
+        gameRangePanel.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        gameRangeOutline = new NeonGlowDrawable();
+        gameRangeOutline.setGlowColor(GAME_ENTRY_GLOW_COLOR);
+        gameRangeOutline.setGlowRadius(32f);
+        gameRangeOutline.setShadowEnabled(!Shared.sharedSave.performanceModeEnabled);
+        gameRangePanel.setForeground(gameRangeOutline);
+    }
+    private void startGameRangePulse() {
+        stopGameRangePulse();
+        gameRangeOutline.setGlowColor(GAME_ENTRY_GLOW_COLOR);
+        if (Shared.sharedSave.performanceModeEnabled) {
+            gameRangeOutline.setGlowRadius(0f);
+            gameRangeOutline.setShadowEnabled(false);
+            return;
+        }
+
+        int warmYellow = Color.rgb(255, 179, 0);
+        int brightYellow = Color.rgb(255, 255, 112);
+        ArgbEvaluator colorEvaluator = new ArgbEvaluator();
+        gameRangePulseAnimator = ValueAnimator.ofFloat(0f, 1f);
+        gameRangePulseAnimator.setDuration(1400L);
+        gameRangePulseAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        gameRangePulseAnimator.setInterpolator(
+                new android.view.animation.LinearInterpolator()
+        );
+        gameRangePulseAnimator.addUpdateListener(animation -> {
+            float phase = (float) animation.getAnimatedValue();
+            float pulse = (1f - (float) Math.cos(phase * Math.PI * 2.0)) * 0.5f;
+            int color = (Integer) colorEvaluator.evaluate(
+                    pulse,
+                    warmYellow,
+                    brightYellow
+            );
+            gameRangeOutline.setGlowColor(color);
+            gameRangeOutline.setGlowRadius(22f + 34f * pulse);
+            gameRangeOutline.setShadowEnabled(true);
+        });
+        gameRangePulseAnimator.start();
+    }
+    private void stopGameRangePulse() {
+        if (gameRangePulseAnimator != null) {
+            gameRangePulseAnimator.cancel();
+            gameRangePulseAnimator = null;
+        }
     }
     private void startGameNumpadNeonPulse() {
         stopGameNumpadNeonPulse();
@@ -794,13 +1029,16 @@ public class MainActivity extends AppCompatActivity {
             updateGameRangeDisplay();
             return;
         }
-        long halfRange = Shared.sharedSave.highRange / 2L;
-        long earnedPoints = (halfRange*2)
-                * (halfRange - Shared.sharedSave.attemptsCounter);
-        Shared.sharedSave.inGamePointsEarned = (int) Math.max(
-                Integer.MIN_VALUE,
-                Math.min(Integer.MAX_VALUE, earnedPoints)
-        );
+        long sequenceHighRange = Math.max(1L, (long) Shared.sharedSave.highRange);
+        long pointsByAttempts = sequenceHighRange
+                * (sequenceHighRange - 1L - Shared.sharedSave.attemptsCounter);
+        long basePoints = Math.max(sequenceHighRange, pointsByAttempts);
+        long cappedBasePoints = Math.min(Integer.MAX_VALUE, basePoints);
+        long awardedPoints = Shared.sharedSave.carSelected == 3
+                ? Math.min(Integer.MAX_VALUE, cappedBasePoints * 2L)
+                : cappedBasePoints;
+        // Keep the actual awarded amount here so the +N popup matches the score increase.
+        Shared.sharedSave.inGamePointsEarned = (int) awardedPoints;
         increaseGameHighRange();
         generateNumberToGuess();
         if (Shared.sharedSave.inGamePointsEarned > 0) {
@@ -811,8 +1049,9 @@ public class MainActivity extends AppCompatActivity {
             );
             restartGameTimerBonusHighlight();
         }
+        long pointsAddedToPool = Shared.sharedSave.inGamePointsEarned;
         long updatedPoints = (long) Math.max(0, Shared.sharedSave.inGamePoints)
-                + Shared.sharedSave.inGamePointsEarned;
+                + pointsAddedToPool;
         Shared.sharedSave.inGamePoints = (int) Math.max(
                 0L,
                 Math.min(Integer.MAX_VALUE, updatedPoints)
@@ -830,7 +1069,7 @@ public class MainActivity extends AppCompatActivity {
             Shared.sharedSave.highRange = Shared.sharedSave.highRange
                     > Integer.MAX_VALUE - 10
                     ? Integer.MAX_VALUE
-                    : Shared.sharedSave.highRange + 10;
+                    : Shared.sharedSave.highRange + 5;
         }
         Shared.sharedSave.inGameLowRange = Shared.sharedSave.lowRange;
         Shared.sharedSave.inGameHighRange = Shared.sharedSave.highRange;
@@ -852,6 +1091,7 @@ public class MainActivity extends AppCompatActivity {
     private void showCorrectGuessMessage(long guessedNumber) {
         clearCorrectGuessMessage();
         startText.setText("Zgadłeś: " + guessedNumber);
+        sceneHost.setElementScale(startText, 0.7f);
         startText.setTextColor(Color.WHITE);
         applyGameHudGlow(startText, Color.WHITE);
         startText.setVisibility(View.VISIBLE);
@@ -935,7 +1175,7 @@ public class MainActivity extends AppCompatActivity {
     private void showGameCarShadowEffect() {
         cancelGameCarShadowEffect();
         gameCarShadow.setVisibility(View.VISIBLE);
-        Shared.OpacityTo(gameCarShadow, 0f, 0.7f, 500L);
+        Shared.OpacityTo(gameCarShadow, 0f, 0.8f, 500L);
         carShadowFadeOutRunnable = () -> {
             carShadowFadeOutRunnable = null;
             Shared.OpacityTo(gameCarShadow, gameCarShadow.getAlpha(), 0f, 1000L);
@@ -1023,6 +1263,7 @@ public class MainActivity extends AppCompatActivity {
         gameResultsPanel.setVisibility(View.VISIBLE);
         gameResultsPanel.setAlpha(0f);
         gameResultsPanel.bringToFront();
+        stopGameRangePulse();
         stopGameNumpadNeonPulse();
         for (View button : gameNumpadButtons) {
             button.setEnabled(false);
@@ -1109,9 +1350,11 @@ public class MainActivity extends AppCompatActivity {
         garageOverlay.setClickable(false);
         garageOverlay.setFocusable(false);
     }
-    private void selectOtherGarageCar() {
+    private void selectOtherGarageCar(int direction) {
         hideGaragePlateKeyboard();
-        Shared.sharedSave.carSelected = Shared.sharedSave.carSelected == 1 ? 2 : 1;
+        int currentCar = normalizeSelectedCar();
+        int offset = direction > 0 ? 1 : 2;
+        Shared.sharedSave.carSelected = ((currentCar - 1 + offset) % 3) + 1;
         updateGarageCar();
     }
     private void configureGaragePlateInput() {
@@ -1158,15 +1401,29 @@ public class MainActivity extends AppCompatActivity {
         garagePlate.clearFocus();
     }
     private void updateGarageCar() {
-        boolean firstCar = Shared.sharedSave.carSelected != 2;
-        Shared.sharedSave.carSelected = firstCar ? 1 : 2;
-        garageCarName.setText(
-                firstCar ? Shared.sharedSave.car1Name : Shared.sharedSave.car2Name
-        );
-        garageCarMode.setText(
-                firstCar ? R.string.garage_standard_mode : R.string.garage_hard_mode
-        );
-        garageCarImage.setImageResource(firstCar ? R.drawable.car1 : R.drawable.car2);
+        int selectedCar = normalizeSelectedCar();
+        switch (selectedCar) {
+            case 2:
+                garageCarName.setText(Shared.sharedSave.car2Name);
+                garageCarMode.setText(R.string.garage_hard_mode);
+                break;
+            case 3:
+                garageCarName.setText(Shared.sharedSave.car3Name);
+                garageCarMode.setText(R.string.garage_medium_mode);
+                break;
+            default:
+                garageCarName.setText(Shared.sharedSave.car1Name);
+                garageCarMode.setText(R.string.garage_standard_mode);
+                break;
+        }
+        garageCarImage.setImageResource(getCarDrawableResource(selectedCar));
+
+        FrameLayout.LayoutParams plateLayout =
+                (FrameLayout.LayoutParams) garagePlate.getLayoutParams();
+        plateLayout.leftMargin = 293;
+        plateLayout.setMarginStart(293);
+        plateLayout.topMargin = 359;
+        garagePlate.setLayoutParams(plateLayout);
     }
     private void ClickedRankTable() {
         if (Shared.sharedSave.points <= 1) {
@@ -1176,6 +1433,13 @@ public class MainActivity extends AppCompatActivity {
     }
     private void ClickedSettings() {
         showSettings();
+    }
+    private void openSettingsWebsite() {
+        Intent browserIntent = new Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://first-in-bastogne-page.vercel.app/games")
+        );
+        startActivity(browserIntent);
     }
     private void showSettings() {
         updateSoundButtonLabel();
@@ -1573,8 +1837,18 @@ public class MainActivity extends AppCompatActivity {
         }
         if (Shared.sharedSave.performanceModeEnabled) {
             updateNeonAppearance(PERFORMANCE_NEON_COLOR, 0f, false);
+            stopGameRangePulse();
+            gameRangeOutline.setGlowColor(GAME_ENTRY_GLOW_COLOR);
+            gameRangeOutline.setGlowRadius(0f);
+            gameRangeOutline.setShadowEnabled(false);
         } else {
             updateNeonAppearance(PERFORMANCE_NEON_COLOR, 36f, true);
+            gameRangeOutline.setGlowColor(GAME_ENTRY_GLOW_COLOR);
+            gameRangeOutline.setGlowRadius(32f);
+            gameRangeOutline.setShadowEnabled(true);
+            if (gameRangeRow.getVisibility() == View.VISIBLE) {
+                startGameRangePulse();
+            }
             startMenuNeonPulse();
         }
     }
@@ -1722,6 +1996,14 @@ public class MainActivity extends AppCompatActivity {
             menuNeonAnimator.cancel();
             menuNeonAnimator = null;
         }
+        for (ImageView startupCar : new ArrayList<>(activeStartupCarViews)) {
+            startupCar.animate().cancel();
+            if (startupCar.getParent() == sceneHost) {
+                sceneHost.removeView(startupCar);
+            }
+        }
+        activeStartupCarViews.clear();
+        stopGameRangePulse();
         stopGameNumpadNeonPulse();
         stopGameCarBounce();
         mainHandler.removeCallbacksAndMessages(null);

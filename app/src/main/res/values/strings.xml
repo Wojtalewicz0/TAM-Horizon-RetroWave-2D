@@ -26,6 +26,7 @@
     <string name="reset_profile_confirmation">Czy zresetować profil i uruchomić ponownie?</string>
     <string name="settings_authors">AUTORZY</string>
     <string name="settings_back_description">Zamknij ustawienia</string>
+    <string name="settings_website_description">Otwórz stronę Polwoj Interactive</string>
     <string name="credits_authors_title">Autorzy:</string>
     <string name="credits_szymon">Szymon Wojtkiewicz</string>
     <string name="credits_polwoj">Polwoj Interactive</string>
@@ -39,8 +40,9 @@
     <string name="rankings_header_points">PUNKTY</string>
     <string name="rankings_default_player">Gracz</string>
     <string name="rankings_player_photo_description">Zdjęcie profilowe gracza</string>
-    <string name="garage_standard_mode">Tryb Standardowy</string>
-    <string name="garage_hard_mode">Tryb Trudny - Zakresy 2x</string>
+    <string name="garage_standard_mode">Tryb Standardowy (Zakresy X+5)</string>
+    <string name="garage_hard_mode">Tryb Rekordowy (Zakresy 2X)</string>
+    <string name="garage_medium_mode">Tryb Szybki (Punkty 2x, Czas 0.5x)</string>
     <string name="garage_car_image_description">Wybrany samochód</string>
     <string name="garage_plate_description">Tablica rejestracyjna, maksymalnie pięć wielkich liter lub cyfr</string>
     <string name="garage_previous_car">Poprzedni samochód</string>

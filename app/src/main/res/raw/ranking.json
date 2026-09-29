@@ -11,14 +11,14 @@
         "name": "Sobie Mistrz",
         "icon": "player2.png",
         "table": "SOBIE",
-        "points": 97200
+        "points": 97280
     },
     {
         "id": 3,
-        "name": "Danił Kviet",
+        "name": "Szeregowy",
         "icon": "player3.png",
         "table": "ULALA",
-        "points": 31000
+        "points": 31090
     },
     {
         "id": 4,
@@ -32,7 +32,7 @@
         "name": "Piotr Musiała",
         "icon": "player5.png",
         "table": "REACT",
-        "points": 4200
+        "points": 7200
     },
     {
         "id": 6,
@@ -50,16 +50,44 @@
     },
     {
         "id": 8,
-        "name": "Dżuma Mydło",
+        "name": "Saszka",
         "icon": "player8.png",
-        "table": "GRUBY",
-        "points": 50
+        "table": "MATMA",
+        "points": 53580
     },
     {
         "id": 9,
         "name": "Krucjata",
         "icon": "player9.png",
         "table": "NISKI",
-        "points": 800
+        "points": 510
+    },
+    {
+        "id": 10,
+        "name": "Teść Borysiaka",
+        "icon": "player10.png",
+        "table": "TESTO",
+        "points": 680
+    },
+    {
+        "id": 11,
+        "name": "zegarek.tech",
+        "icon": "player11.png",
+        "table": "MAJKA",
+        "points": 4930
+    },
+    {
+        "id": 12,
+        "name": "Lipka",
+        "icon": "player12.png",
+        "table": "LIPKA",
+        "points": 330
+    },
+    {
+        "id": 13,
+        "name": "Hubert Warmia",
+        "icon": "player13.png",
+        "table": "MAZI",
+        "points": 8760
     }
 ]

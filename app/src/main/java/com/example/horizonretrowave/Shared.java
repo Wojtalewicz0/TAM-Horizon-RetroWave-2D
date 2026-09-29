@@ -528,6 +528,7 @@ public final class Shared {
         public int carSelected;
         public String car1Name;
         public String car2Name;
+        public String car3Name;
         public final ArrayList<String> unlockedItems = new ArrayList<>();
         public final ArrayList<Integer> highScores = new ArrayList<>();
 
@@ -549,7 +550,7 @@ public final class Shared {
             inGamePointsEarned = 0;
             lowRange = 0;
             inGameLowRange = 0;
-            highRange = 10;
+            highRange = 5;
             inGameHighRange = 10;
             attemptsCounter = 0;
             soundEffectsEnabled = true;
@@ -559,9 +560,10 @@ public final class Shared {
             playerPhoto = DEFAULT_PROFILE_PHOTO;
             selectedLanguage = "pl";
             carSelected = 1;
-            car1Name = "Nissan 350Z";
+            car1Name = "Nissan 350Z RJN Sport";
             numberToGuess = 0;
-            car2Name = "Abflug S900 Wangan";
+            car2Name = "Abflug Supra S900 JZA80";
+            car3Name = "Toyota BMW Z4 \"Supra A90\"";
 
             unlockedItems.clear();
             unlockedItems.add("default");
@@ -585,6 +587,9 @@ public final class Shared {
             json.put("playerPhoto", playerPhoto);
             json.put("selectedLanguage", selectedLanguage);
             json.put("carSelected", carSelected);
+            json.put("car1Name", car1Name);
+            json.put("car2Name", car2Name);
+            json.put("car3Name", car3Name);
 
             JSONArray items = new JSONArray();
             for (String item : unlockedItems) {
@@ -628,7 +633,10 @@ public final class Shared {
                     "selectedLanguage",
                     selectedLanguage
             );
-            carSelected = json.optInt("carSelected", carSelected);
+            carSelected = Math.max(1, Math.min(3, json.optInt("carSelected", carSelected)));
+            car1Name = json.optString("car1Name", car1Name);
+            car2Name = json.optString("car2Name", car2Name);
+            car3Name = json.optString("car3Name", car3Name);
 
             JSONArray items = json.optJSONArray("unlockedItems");
             if (items != null) {

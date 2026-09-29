@@ -280,6 +280,19 @@
             android:clickable="true"
             android:contentDescription="@string/settings_back_description"
             android:focusable="true" />
+
+        <ImageView
+            android:id="@+id/settings_website"
+            android:layout_width="198px"
+            android:layout_height="198px"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="45px"
+            android:layout_marginBottom="45px"
+            android:clickable="true"
+            android:contentDescription="@string/settings_website_description"
+            android:focusable="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/polwoj_white" />
     </FrameLayout>
 
     <FrameLayout
@@ -641,9 +654,11 @@
     <LinearLayout
         android:id="@+id/game_range_row"
         android:layout_width="match_parent"
-        android:layout_height="110px"
+        android:layout_height="170px"
         android:alpha="0"
         android:clickable="false"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:focusable="false"
         android:visibility="gone"
         android:elevation="1500dp"
@@ -652,32 +667,45 @@
         android:paddingStart="28px"
         app:scene_center_x="960"
         app:scene_center_y="540"
-        app:scene_height="110"
+        app:scene_height="170"
         app:scene_width="1920">
 
-        <TextView
-            android:id="@+id/game_range_low_text"
-            style="@style/GameHudTimer"
+        <LinearLayout
+            android:id="@+id/game_range_panel"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:textSize="82px"
-            android:textColor="#FFFFDD4A" />
+            android:layout_height="146px"
+            android:background="@drawable/game_range_panel_background"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="18px"
+            android:paddingEnd="18px">
 
-        <TextView
-            android:id="@+id/game_entry_text"
-            style="@style/GameHudTimer"
-            android:layout_width="220px"
-            android:layout_height="match_parent"
-            android:textSize="82px"
-            android:textColor="#FFFFDD4A" />
+            <TextView
+                android:id="@+id/game_range_low_text"
+                style="@style/GameHudTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textSize="94px"
+                android:textColor="#FFFFDD4A" />
 
-        <TextView
-            android:id="@+id/game_range_high_text"
-            style="@style/GameHudTimer"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:textSize="82px"
-            android:textColor="#FFFFDD4A" />
+            <TextView
+                android:id="@+id/game_entry_text"
+                style="@style/GameHudTimer"
+                android:layout_width="253px"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10px"
+                android:textSize="94px"
+                android:textColor="#FFFFDD4A" />
+
+            <TextView
+                android:id="@+id/game_range_high_text"
+                style="@style/GameHudTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10px"
+                android:textSize="94px"
+                android:textColor="#FFFFDD4A" />
+        </LinearLayout>
     </LinearLayout>
 
     <FrameLayout
@@ -699,7 +727,7 @@
             android:layout_width="792px"
             android:layout_height="792px"
             android:layout_gravity="center"
-            android:alpha="0.8"
+            android:alpha="0.88"
             android:contentDescription="@string/garage_car_image_description"
             android:scaleType="fitCenter"
             android:src="@drawable/car1" />
@@ -901,7 +929,7 @@
         android:visibility="gone"
         android:elevation="1501dp"
         app:scene_center_x="960"
-        app:scene_center_y="540"
+        app:scene_center_y="432"
         app:scene_height="300"
         app:scene_width="1920" />
 

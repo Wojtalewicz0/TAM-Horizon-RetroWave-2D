@@ -3,24 +3,25 @@
 
 Disclaimer: ta wersja projektu z uwag ograniczeń github
 nie posiada kilku dużych plików uniemożliwiając biuld projektu.
-
+<br>
 ## Fraszka dla pana
+<b><i>
+Panie Radosławie,
+Proszę serdecznie o szósteczkę.
+Panie Radosławie,
+Inaczej musi pan znaleźć wymóweczkę!
 
-### *Panie Radosławie,*
-### *Proszę serdecznie o szósteczkę.*
-### *Panie Radosławie,*
-### *Inaczej musi pan znaleźć wymóweczkę!*
+Panie Sobieraju,
+Pracowałem każdego dnia oraz nocy,
+Panie Sobieraju,
+Przez ten projekt opadłem z wszelkiej mocy!
 
-### *Panie Sobieraju,*
-### *Pracowałem każdego dnia oraz nocy,*
-### *Panie Sobieraju,*
-### *Przez ten projekt opadłem z wszelkiej mocy!*
-
-### *Panie Radku,*
-### *Taki świetny projekt, zlituj się pan!*
-### *Panie Radku,*
-### *A w WPF piękne projekty panu dam!*
-
+Panie Radku,
+Taki świetny projekt, zlituj się pan!
+Panie Radku,
+A w WPF piękne projekty panu dam!
+</b></i>
+<br>
 ## Screeny:
 
 <img src="screen1.png" alt="Zdjęcie 1" width="100%" />
