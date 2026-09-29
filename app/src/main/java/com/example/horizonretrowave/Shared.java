@@ -537,7 +537,7 @@ public final class Shared {
         }
 
         public void resetToDefaults() {
-            devMode = true;
+            devMode = false;
             saveVersion = 1;
             points = 0;
             gameFinishedOnce = 0;
